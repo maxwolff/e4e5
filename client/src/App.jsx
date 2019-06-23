@@ -1,31 +1,18 @@
 import React from 'react';
-import './App.css';
-import './lichess';
-
 import styled from 'styled-components';
-import { getGameData, parseOpenings } from './lichess';
-const _ = require('lodash');
+import _ from 'lodash';
+
+import { Navbar } from './components/Navbar';
 
 const Container = styled.div`
   background-size: cover;
   height: 100vh;
   width: 100vw;
   display: grid;
-  grid-template-columns: 20% 60% 20%;
-  grid-template-rows: 10% 90%;
-  grid-column-gap: 10px;
-  grid-row-gap: 10px;
+  grid-template-columns: [site-left] 1fr [left-box] 3fr [right-box] 1fr [site-right];
+  grid-template-rows: [navbar-top] 1fr [navbar-bottom] 8fr [content-end] 1fr [footer];
   background: rgb(245, 245, 245);
-  overflow:scroll;
-`;
-
-const Navbar = styled.div`
-  grid-column-start: 1;
-  grid-column-end: 4;
-  grid-row-start: 1;
-  grid-row-end: 2;
-  border-bottom: 0.5px solid;
-  background: white;
+  overflow: scroll;
 `;
 
 const Prompt = styled.div`
@@ -53,23 +40,29 @@ const Title = styled.div`
   grid-row-end: 2;
 `;
 
+const Tile = styled.div`
+  align-self: center;
+  justify-self: center;
+  background: white;
+  margin: 1em;
+  box-shadow: 1px 1px 1px grey;
+`;
+
 function Openings(props) {
   const shouldDisplay = !_.isUndefined(props.openings);
   let result = [];
   if (shouldDisplay) {
     result.push(
       props.openings.map(opening => (
-        <p key={opening.eco}>
+        <Tile key={opening.eco}>
           {_.round((100 * opening.count) / props.openings.length, 0)}%{'  '}
           {opening.eco}
-        </p>
+        </Tile>
       ))
     );
   }
   return <Box>{result}</Box>;
 }
-
-const gameNumber = 100;
 
 class App extends React.Component {
   constructor(props) {
@@ -88,12 +81,15 @@ class App extends React.Component {
 
   async handleSubmit(event) {
     event.preventDefault();
-    console.log(this.state.username);
-    const gameData = await getGameData(this.state.username, gameNumber);
-    const openingData = parseOpenings(gameData);
-    console.log(openingData);
-    this.setState({ openings: openingData });
-    console.log('state', this.state);
+    let json;
+    try {
+      const data = await fetch('/games/'+this.state.username+"black");
+      json = await data.json();
+      console.log(json);
+    } catch (e) {
+      console.error('failed to get games', e);
+    }
+    this.setState({ openings: json });
   }
 
   render() {

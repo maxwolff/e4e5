@@ -13,42 +13,43 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
 const lodash_1 = __importDefault(require("lodash"));
-exports.getOpenings = (username, numGames) => __awaiter(this, void 0, void 0, function* () {
-    const result = yield axios_1.default.get(`https://lichess.org/api/games/user/${username}?max=${numGames}&opening=true`);
-    const gameData = result.data.split('\n').reduce((acc, curr, idx, src) => {
-        if (curr !== '') {
-            if (src[idx - 1] === '' && src[idx - 2] !== '') {
-                // moves delimiter
-                acc[acc.length - 1].moves = curr;
-            }
-            else {
-                if (src[idx - 1] === '' && src[idx - 2] === '') {
-                    // new game
-                    acc.push({});
-                }
-                const key = lodash_1.default.camelCase(curr.slice(1, -1).split(' ')[0]);
-                const value = curr.split(`"`)[1];
-                acc[acc.length - 1][key] = value;
-            }
+const parseGameString = (game) => {
+    return game.split('\n').reduce((acc, curr) => {
+        if (curr[0] === '1') {
+            acc.moves = curr;
         }
-        return acc;
-    }, [{}]);
-    const parsedData = gameData.reduce((acc, curr) => {
-        if (curr.variant === 'Standard') {
-            // add opening for the first time
-            if (lodash_1.default.isUndefined(acc[curr.opening]) === true) {
-                acc[curr.opening] = { count: 1 };
-            }
-            else {
-                // increment
-                acc[curr.opening].count = acc[curr.opening].count + 1;
-            }
+        else if (curr) {
+            const key = lodash_1.default.camelCase(curr.slice(1, -1).split(' ')[0]);
+            const value = curr.split(`"`)[1];
+            acc[key] = value;
         }
         return acc;
     }, {});
-    const arr = lodash_1.default.keys(parsedData).map(key => {
-        return { eco: key, count: parsedData[key].count };
+};
+exports.parseData = (data) => {
+    const games = data.split('\n\n\n').slice(0, -1);
+    const gameData = games.reduce((acc, curr) => {
+        acc.push(parseGameString(curr));
+        return acc;
+    }, []);
+    console.log('gamedata', gameData.length);
+    const parsedData = gameData.reduce((acc, curr) => {
+        if (curr.variant === 'Standard') {
+            console.log(curr.opening, acc[curr.opening], lodash_1.default.isUndefined(acc[curr.opening]));
+            acc[curr.opening] = lodash_1.default.isUndefined(acc[curr.opening])
+                ? 1
+                : acc[curr.opening] + 1;
+        }
+        return acc;
+    }, {});
+    const indexedOpenings = lodash_1.default.keys(parsedData).map(key => {
+        return { opening: key, count: parsedData[key] };
     });
-    return lodash_1.default.sortBy(arr, ['count']).reverse();
+    const sortedOpenings = lodash_1.default.sortBy(indexedOpenings, ['count']).reverse();
+    return { openings: sortedOpenings };
+};
+exports.getOpenings = (username, numGames, color) => __awaiter(this, void 0, void 0, function* () {
+    const result = yield axios_1.default.get(`https://lichess.org/api/games/user/${username}?color${color}&max=${numGames}&opening=true`);
+    return exports.parseData(result.data);
 });
 //# sourceMappingURL=lichess.js.map
