@@ -1,5 +1,5 @@
-import axios from 'axios';
-import _ from 'lodash';
+import axios from "axios";
+import _ from "lodash";
 
 interface IUserGame {
   event?: string; // Game type
@@ -21,21 +21,32 @@ interface IUserGame {
   termination?: string; // normal, time out, etc
 }
 
-interface IParseOpenings {
-  opening?: number; // number of openings observed
+interface IRawOpeningCount {
+  [opening: string]: number;
 }
 
-interface IOpeningCount {
+interface IIndexedOpenings {
+  white: IRawOpeningCount;
+  black: IRawOpeningCount;
+}
+
+interface IOpeningResult {
   opening: string;
   count: number;
 }
 
+interface IOpeningResultColors {
+  white: IOpeningResult[];
+  black: IOpeningResult[];
+}
+
+
 const parseGameString = (game: string): IUserGame => {
-  return game.split('\n').reduce((acc: IUserGame, curr) => {
-    if (curr[0] === '1') {
+  return game.split("\n").reduce((acc: IUserGame, curr) => {
+    if (curr[0] === "1") {
       acc.moves = curr;
     } else if (curr) {
-      const key = _.camelCase(curr.slice(1, -1).split(' ')[0]);
+      const key = _.camelCase(curr.slice(1, -1).split(" ")[0]);
       const value = curr.split(`"`)[1];
       acc[key] = value;
     }
@@ -43,34 +54,36 @@ const parseGameString = (game: string): IUserGame => {
   }, {});
 };
 
-export const parseData = (data: string) => {
-  const games: string[] = data.split('\n\n\n').slice(0, -1);
+const parseData = (data: string, username: string): IOpeningResultColors => {
+  const games: string[] = data.split("\n\n\n").slice(0, -1);
   const gameData: IUserGame[] = games.reduce((acc, curr) => {
     acc.push(parseGameString(curr));
     return acc;
   }, []);
-  const parsedData = gameData.reduce((acc, curr) => {
-    if (curr.variant === 'Standard') {
-      acc[curr.opening] = _.isUndefined(acc[curr.opening])
+  const indexedOpenings: IIndexedOpenings = gameData.reduce<IIndexedOpenings>((acc, curr) => {
+    if (curr.variant === "Standard") {
+      const userColor: string = curr.white == username ? "white" : "black";
+      const minimizedOpening: string = curr.opening.split(':')[0]; // Queen's Gambit: Declined => Queen's Gambit
+      acc[userColor][minimizedOpening] = _.isUndefined(acc[userColor][minimizedOpening])
         ? 1
-        : acc[curr.opening] + 1;
+        : acc[userColor][minimizedOpening] + 1;
     }
     return acc;
-  }, {});
-  const indexedOpenings: IOpeningCount[] = _.keys(parsedData).map(key => {
-    return { opening: key, count: parsedData[key] };
-  });
-  const sortedOpenings = _.sortBy(indexedOpenings, ['count']).reverse();
-  return { openings: sortedOpenings };
+  }, {white:{}, black:{}});
+  return _.mapValues<IOpeningResultColors>(indexedOpenings, (objByColor)=> {
+    const unsorted: IOpeningResultColors = _.keys(objByColor).map((opening)=> {
+      return {opening: opening, count: objByColor[opening]}
+    });
+    return _.sortBy(unsorted, ['count']).reverse();
+  })
 };
 
 export const getOpenings = async (
   username: string,
-  color: string,
   numGames: number
-) => {
+): Promise<IOpeningResultColors> => {
   const result = await axios.get(
-    `https://lichess.org/api/games/user/${username}?color${color}&max=${numGames}&opening=true`
+    `https://lichess.org/api/games/user/${username}?max=${numGames}&opening=true`
   );
-  return parseData(result.data);
+  return parseData(result.data, username);
 };

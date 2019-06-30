@@ -7,13 +7,19 @@ const app = express();
 
 app.use(express.static(path.resolve('../client/build')));
 
-const numGames = 50;
+const maxGames = 100;
 
-app.get('/games/:username', async (req, res) => {
+app.get('/games/:username/:numGames', async (req, res) => {
+  console.log(
+    'getting',
+    req.params.numGames,
+    ' from ',
+    req.params.username
+  );
+  if (req.params.numGames > maxGames) throw `Requested more than maximum ${maxGames} games`;
   const openings = await getOpenings(
     req.params.username,
-    req.params.color,
-    numGames
+    req.params.numGames
   );
   res.json(openings);
 });
@@ -25,6 +31,6 @@ console.log('App is listening on port ' + port);
 
 // testing
 // (async () => {
-//   const f = await getOpenings('drnykterstein', 'black', numGames);
-//   console.log(f);
+//   const result = await getOpenings('lasergun', numGames);
+//   console.log('result', result);
 // })();
