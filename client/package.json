@@ -8,8 +8,10 @@
     "lodash": "^4.17.11",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-router-dom": "^5.0.1",
     "react-scripts": "3.0.1",
-    "styled-components": "^4.2.0"
+    "styled-components": "^4.2.0",
+    "use-react-router": "^1.0.7"
   },
   "scripts": {
     "start": "react-scripts start",

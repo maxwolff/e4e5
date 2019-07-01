@@ -5,23 +5,28 @@ import { getOpenings } from './lichess';
 
 const app = express();
 
-app.use(express.static(path.resolve('../client/build')));
+app.use(express.static(path.resolve('./client/build')));
 
 const maxGames = 100;
 
-app.get('/games/:username/:numGames', async (req, res) => {
+app.get('/api/:username/:numGames', async (req, res) => {
   console.log(
     'getting',
     req.params.numGames,
     ' from ',
     req.params.username
   );
-  if (req.params.numGames > maxGames) throw `Requested more than maximum ${maxGames} games`;
+  // if (req.params.numGames > maxGames) throw `Requested more than maximum ${maxGames} games`;
   const openings = await getOpenings(
     req.params.username,
     req.params.numGames
   );
   res.json(openings);
+});
+ 
+// Handles any requests that don't match the ones above
+app.get('*', (req,res) =>{
+  res.sendFile(path.resolve('./client/build/index.html'));
 });
 
 const port = process.env.PORT || 5000;

@@ -1,9 +1,20 @@
 {
-  "name": "humanity-app",
-  "version": "1.0.0",
-  "license": "MIT",
+  "name": "chess-app-server",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/app.js",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "express": "^4.17.1",
+    "lodash": "^4.17.11",
+    "path": "^0.12.7"
+  },
+  "scripts": {
+    "start": "tsc && node dist/app.js"
+  },
   "devDependencies": {
-    "@types/node": "^11.13.4",
-    "concurrently": "^4.1.0"
+    "@types/express": "^4.17.0",
+    "tslint": "^5.17.0",
+    "typescript": "^3.5.2"
   }
 }
