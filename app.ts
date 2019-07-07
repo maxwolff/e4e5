@@ -1,7 +1,8 @@
+import axios from 'axios';
 import express from 'express';
 import * as path from 'path';
 
-import { getOpenings } from './lichess';
+import { parseData } from './lichess';
 
 const app = express();
 
@@ -10,17 +11,19 @@ app.use(express.static(path.resolve('./client/build')));
 const maxGames = 100;
 
 app.get('/api/:username/:numGames', async (req, res) => {
-  console.log(
-    'getting',
-    req.params.numGames,
-    ' from ',
-    req.params.username
-  );
-  // if (req.params.numGames > maxGames) throw `Requested more than maximum ${maxGames} games`;
-  const openings = await getOpenings(
-    req.params.username,
-    req.params.numGames
-  );
+  if (req.params.numGames > maxGames) throw new Error(`Requested more than maximum ${maxGames} games`);
+  console.log('getting', req.params.numGames,' from ',req.params.username);
+  const url = `https://lichess.org/api/games/user/${req.params.username}?max=${req.params.numGames}&opening=true`
+  console.log(url)
+  let response;
+  try {
+    response = await axios.get(url);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.toString() });
+  }
+  console.log(response.data)
+  const openings =  parseData(response.data, req.params.username);
   res.json(openings);
 });
  
@@ -33,9 +36,3 @@ const port = process.env.PORT || 5000;
 app.listen(port);
 
 console.log('App is listening on port ' + port);
-
-// testing
-// (async () => {
-//   const result = await getOpenings('lasergun', numGames);
-//   console.log('result', result);
-// })();

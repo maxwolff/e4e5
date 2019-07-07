@@ -1,4 +1,3 @@
-import axios from 'axios';
 import _ from 'lodash';
 
 interface IUserGame {
@@ -38,6 +37,8 @@ interface IOpeningResult {
 interface IOpeningResultColors {
   white: IOpeningResult[];
   black: IOpeningResult[];
+  blackCount: number;
+  whiteCount: number;
 }
 
 const parseGameString = (game: string): IUserGame => {
@@ -53,7 +54,7 @@ const parseGameString = (game: string): IUserGame => {
   }, {});
 };
 
-const parseData = (data: string, username: string): IOpeningResultColors => {
+export const parseData = (data: string, username: string): IOpeningResultColors => {
   const games: string[] = data.split('\n\n\n').slice(0, -1);
   const gameData: IUserGame[] = games.reduce((acc, curr) => {
     acc.push(parseGameString(curr));
@@ -62,7 +63,7 @@ const parseData = (data: string, username: string): IOpeningResultColors => {
   const indexedOpenings: IIndexedOpenings = gameData.reduce<IIndexedOpenings>(
     (acc, curr) => {
       if (curr.variant === 'Standard') {
-        const userColor: string = curr.white === username ? 'white' : 'black';
+        const userColor: string = curr.white.toLowerCase() === username.toLowerCase() ? 'white' : 'black';
         const minimizedOpening: string = curr.opening.split(':')[0]; // Queen's Gambit: Declined => Queen's Gambit
         acc[userColor][minimizedOpening] = _.isUndefined(
           acc[userColor][minimizedOpening]
@@ -74,20 +75,21 @@ const parseData = (data: string, username: string): IOpeningResultColors => {
     },
     { white: {}, black: {} }
   );
-  return _.mapValues<IOpeningResultColors>(indexedOpenings, objByColor => {
+  const openingResultColors: IOpeningResultColors = _.mapValues<IOpeningResultColors>(indexedOpenings, objByColor => {
     const unsorted: IOpeningResultColors = _.keys(objByColor).map(opening => {
       return { opening: opening, count: objByColor[opening] };
     });
     return _.sortBy(unsorted, ['count']).reverse();
   });
-};
 
-export const getOpenings = async (
-  username: string,
-  numGames: number
-): Promise<IOpeningResultColors> => {
-  const result = await axios.get(
-    `https://lichess.org/api/games/user/${username}?max=${numGames}&opening=true`
-  );
-  return parseData(result.data, username);
+  openingResultColors.blackCount = openingResultColors.black.reduce((acc, curr)=> {
+    return acc + curr.count;
+  }, 0);
+
+  openingResultColors.whiteCount = openingResultColors.white.reduce((acc, curr)=> {
+    return acc + curr.count;
+  }, 0);
+
+  return openingResultColors;
+
 };

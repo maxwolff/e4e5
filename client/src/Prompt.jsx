@@ -6,8 +6,10 @@ const StyledInput = styled.input`
   font-family: "Courier New", Courier, monospace;
 	border-radius: 5px;
   border: 2px solid #D16666;
-  width: 20vw;
-	height: 5vh;
+  width: 25vw;
+	height: 4vh;
+  font-size: 1.2em;
+  padding-left: .5em;
 `;
 
 export const Prompt = (props) => {
@@ -21,7 +23,7 @@ export const Prompt = (props) => {
   return (
   <>
     <form onSubmit={handleSubmit}>
-      <StyledInput placeholder='... enter a lichess username' type='text' onChange={(event)=>{updateText(event.target.value)}}/>
+      <StyledInput placeholder='enter a lichess username' type='text' onChange={(event)=>{updateText(event.target.value)}}/>
     </form>
   </>
   );

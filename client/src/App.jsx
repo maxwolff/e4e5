@@ -2,27 +2,33 @@ import React from 'react';
 import { BrowserRouter as Router, Route } from "react-router-dom"
 import styled from 'styled-components';
 
-import { Navbar } from "./Navbar";
-import { ListOpenings } from "./ListOpenings";
+import { Footer } from "./Footer"
 import { Landing } from "./Landing";
+import { ListOpenings } from "./ListOpenings";
+import { Navbar } from "./Navbar";
 
 const Site = styled.div`
-  font-family: "Courier New", Courier, monospace;
   background-size: cover;
   height: 100vh;
   width: 100vw;
-  background: #F5F5F5;
+  display: grid;
+  grid-template-rows: [top] 1fr [navbar-bottom] 8fr [bottom] 1fr [footer]
 `;
+
+document.title = 'e4e5.dev'
 
 const App = () => {
     return (
-    <Site>
-      <Router>
-        <Navbar/>
-        <Route exact path="/" component= {Landing} />
-        <Route path="/:username" component = {ListOpenings} />
-      </Router>
-    </Site>
+
+      <Site>
+        <Router>
+          <Navbar/>
+          <Route exact path="/" component= {Landing} />
+          <Route path="/:username" component = {ListOpenings} />
+          <Footer />
+        </Router>
+      </Site>
+
    );
 }
 
