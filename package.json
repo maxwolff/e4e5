@@ -13,8 +13,9 @@
     "typescript": "^3.5.2"
   },
   "scripts": {
-    "start": "yarn build && tsc && node dist/app.js",
-    "build": "cd client && yarn install && yarn build"
+    "start": "yarn build && tsc && yarn serve",
+    "build": "cd client && yarn install && yarn build",
+    "serve": "node dist/app.js"
   },
   "devDependencies": {
     "typescript": "^3.5.2"

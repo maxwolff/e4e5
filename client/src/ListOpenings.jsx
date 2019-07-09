@@ -18,7 +18,7 @@ const OpeningButton = styled.div`
 	margin-bottom: 1em;
 	outline: double;
 	text-align:left;
-	font-size: 1.5em;
+	font-size: ${props => props.theme.wordSize};
 	&:hover {
 		font-weight: bold;
 	}
@@ -36,24 +36,24 @@ const WhiteOpeningList = styled.div`
 	padding: 2.5em;
 `;
 
-const UsernameText = styled.div`
+const Heading = styled.div`
 	display: block;
 	margin: auto;
-	font-size: 1.5em;
+	font-size: ${props => props.theme.wordSize};
 	grid-row: top / title;
 	grid-column: left / right;
 `;
 
 const ColorTitle = styled.div`
 	padding-bottom: .5em;
-	font-size: 1.5em;
+	font-size: ${props => props.theme.wordSize};
 `;
 
 const SpinnerWrapper = styled.div`
 	grid-row: title / bottom;
 	grid-column: left / right;
 	margin: auto;
-`
+`;
 
 const numGames = 20;
 
@@ -84,14 +84,14 @@ export const ListOpenings = (props) => {
 		fetchOpenings(props.match.params.username, numGames);
 	},[props.match.params.username]);
 
-	const shouldRender = !openings.error && isLoading === false;
-	// console.log(shouldRender)
+	const shouldRender = (!openings.error || openings.white === 0) && isLoading === false;
 	return (
 	<Container>
-		<UsernameText>@{props.match.params.username} 's last {numGames} openings</UsernameText>
+		<Heading>
+			{openings.error && <p>Invalid username... try a different one</p>}
+			{!openings.error && <div>@{props.match.params.username} 's last {numGames} openings</div>}
+		</Heading>
 		{isLoading && <SpinnerWrapper><Spinner/></SpinnerWrapper>}
-		{openings.error && <div>Something went wrong ... try a different username</div>}
-
 		<WhiteOpeningList>
 			<ColorTitle>As White:</ColorTitle>
 			{shouldRender && <OpeningList openings={openings.white} count={openings.whiteCount}/>}

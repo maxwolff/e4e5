@@ -23,7 +23,7 @@ export const TitleWrapper = styled.p`
   font-weight: bold;
   font-style: italic;
   margin: auto;
-  font-size: 1.2em;
+  font-size: ${props => props.theme.headerSize};
   grid-column: left / left-box;
   &:hover {
     font-weight: bold;

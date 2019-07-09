@@ -4,7 +4,7 @@ import styled from 'styled-components';
 const Link = styled.p`
 	font-weight: bold;
 	font-style: italic;
-	font-size: 1.2em;
+	font-size: ${props => props.theme.headerSize};
 	cursor: default
 	text-align: left;
 	&:hover {
